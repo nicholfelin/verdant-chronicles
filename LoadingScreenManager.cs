@@ -1,21 +1,32 @@
-using System.Collections;  // Tambahkan ini untuk mendukung IEnumerator
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro; 
+using TMPro;
 
 public class LoadingScreenManager : MonoBehaviour
 {
     public string sceneToLoad;  // Nama scene yang akan diload
-    public Image playerImage;   // Gambar atau Sprite animasi player
-    public TextMeshProUGUI loadingText;
- public Slider progressBar;  // Slider untuk progres bar
+    public TextMeshProUGUI loadingText;  // Text untuk menampilkan loading progress
+    public Slider progressBar;  // Slider untuk progres bar
 
+    public float moveSpeed = 2f;  // Kecepatan gerakan pemain
+    public Vector2 moveDirection = Vector2.right;  // Arah gerakan, bisa diubah ke kiri/kanan/atas/bawah
     private Animator playerAnimator;  // Animator untuk player berjalan
+    private Rigidbody2D rb;  // Rigidbody2D untuk pergerakan pemain
 
-    void Start()
+    private void Start()
     {
-        playerAnimator = playerImage.GetComponent<Animator>();
+        // Mendapatkan komponen Animator dan Rigidbody2D
+        playerAnimator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+
+        // Memulai animasi berjalan dan memulai coroutine untuk load scene secara async
+        if (playerAnimator != null)
+        {
+            playerAnimator.SetBool("isWalking", true);
+        }
+        
         StartCoroutine(LoadSceneAsync());
     }
 
@@ -29,16 +40,16 @@ public class LoadingScreenManager : MonoBehaviour
         {
             // Kalkulasi loading progress
             float progress = Mathf.Clamp01(operation.progress / 0.9f); // Unity load sampai 90%, jadi skalanya diatur
-            loadingText.text = (progress * 100f).ToString("F0") + "%";
+            loadingText.text = (progress * 100f).ToString("F0") + "%";  // Update text progress
             progressBar.value = progress;  // Update progres bar
 
-            // Play animasi player
-            if (playerAnimator != null)
+            // Menggerakkan pemain secara otomatis
+            if (rb != null)
             {
-                playerAnimator.SetBool("isWalking", true);  // Jika animasi dibuat dengan parameter
+                rb.velocity = moveDirection * moveSpeed;
             }
 
-            yield return null;
+            yield return null;  // Menunggu frame berikutnya
         }
     }
 }
